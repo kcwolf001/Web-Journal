@@ -1,6 +1,6 @@
 'use client';
 
-import { JournalEntry } from '@/lib/types';
+import { JournalEntry, COLOR_CLASSES } from '@/lib/types';
 
 interface SidebarProps {
   entries: JournalEntry[];
@@ -48,12 +48,16 @@ export default function Sidebar({
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {entries.map((entry) => (
+            {entries.map((entry) => {
+              const colorClass = entry.color ? COLOR_CLASSES[entry.color] : 'border-l-4 border-gray-200';
+              const isSelected = selectedEntry?.id === entry.id;
+
+              return (
               <div
                 key={entry.id}
-                className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
-                  selectedEntry?.id === entry.id ? 'bg-blue-50 border-l-4 border-blue-600' : ''
-                }`}
+                className={`p-4 cursor-pointer transition-colors ${
+                  isSelected ? 'ring-2 ring-inset ring-gray-400' : 'hover:opacity-80'
+                } ${colorClass}`}
                 onClick={() => onSelectEntry(entry)}
               >
                 <div className="flex items-start justify-between">
@@ -91,7 +95,8 @@ export default function Sidebar({
                   {formatDate(entry.updatedAt)}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
