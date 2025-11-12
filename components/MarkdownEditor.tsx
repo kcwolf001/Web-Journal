@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { JournalEntry } from '@/lib/types';
+import { SocialShareButtons } from './SocialShareButtons';
 
 interface MarkdownEditorProps {
   entry: JournalEntry | null;
@@ -62,14 +63,19 @@ export default function MarkdownEditor({ entry, onSave }: MarkdownEditorProps) {
           placeholder="Entry title..."
           className="w-full text-3xl font-bold border-none outline-none placeholder-gray-300"
         />
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-sm text-gray-400">
-            {entry?.updatedAt
-              ? `Last saved: ${new Date(entry.updatedAt).toLocaleString()}`
-              : 'Not saved yet'}
-          </p>
-          {isSaving && (
-            <span className="text-sm text-green-600">Saving...</span>
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-gray-400">
+              {entry?.updatedAt
+                ? `Last saved: ${new Date(entry.updatedAt).toLocaleString()}`
+                : 'Not saved yet'}
+            </p>
+            {isSaving && (
+              <span className="text-sm text-green-600">Saving...</span>
+            )}
+          </div>
+          {entry && title && (
+            <SocialShareButtons title={title} content={content} />
           )}
         </div>
       </div>
