@@ -1,20 +1,34 @@
 'use client';
 
-import { JournalEntry } from '@/lib/types';
+import { useState } from 'react';
+import { JournalEntry, Folder } from '@/lib/types';
+import FolderPanel from './FolderPanel';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface SidebarProps {
   entries: JournalEntry[];
+  folders: Folder[];
   selectedEntry: JournalEntry | null;
+  selectedFolderId?: string;
   onSelectEntry: (entry: JournalEntry | null) => void;
+  onSelectFolder: (folderId?: string) => void;
   onDeleteEntry: (id: string) => void;
+  onFoldersChange: (folders: Folder[]) => void;
+  onEntriesChange: (entries: JournalEntry[]) => void;
 }
 
 export default function Sidebar({
   entries,
+  folders,
   selectedEntry,
+  selectedFolderId,
   onSelectEntry,
+  onSelectFolder,
   onDeleteEntry,
+  onFoldersChange,
+  onEntriesChange,
 }: SidebarProps) {
+  const [showFolderPanel, setShowFolderPanel] = useState(true);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -28,9 +42,16 @@ export default function Sidebar({
     return date.toLocaleDateString();
   };
 
+  // Filter entries based on selected folder
+  const filteredEntries =
+    selectedFolderId === undefined
+      ? entries.filter((e) => !e.folderId)
+      : entries.filter((e) => e.folderId === selectedFolderId);
+
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-screen">
-      <div className="p-6 border-b border-gray-200">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-screen overflow-hidden">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-200 flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">WebJournal</h1>
         <button
           onClick={() => onSelectEntry(null)}
@@ -40,15 +61,50 @@ export default function Sidebar({
         </button>
       </div>
 
+      {/* Folder Panel Toggle */}
+      <div className="border-b border-gray-200 flex-shrink-0">
+        <button
+          onClick={() => setShowFolderPanel(!showFolderPanel)}
+          className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <span>Navigation</span>
+          {showFolderPanel ? (
+            <ChevronDown size={16} className="text-gray-500" />
+          ) : (
+            <ChevronRight size={16} className="text-gray-500" />
+          )}
+        </button>
+      </div>
+
+      {/* Folder Panel */}
+      {showFolderPanel && (
+        <div className="flex-shrink-0 border-b border-gray-200 max-h-48 overflow-auto">
+          <FolderPanel
+            folders={folders}
+            entries={entries}
+            selectedFolderId={selectedFolderId}
+            onSelectFolder={(folderId) => {
+              onSelectFolder(folderId);
+              onSelectEntry(null);
+            }}
+            onFoldersChange={onFoldersChange}
+            onEntriesChange={onEntriesChange}
+          />
+        </div>
+      )}
+
+      {/* Entries List */}
       <div className="flex-1 overflow-auto">
-        {entries.length === 0 ? (
+        {filteredEntries.length === 0 ? (
           <div className="p-6 text-center text-gray-400">
-            <p>No entries yet.</p>
-            <p className="mt-2 text-sm">Start writing your first journal entry!</p>
+            <p>No entries in this folder.</p>
+            {selectedFolderId === undefined && (
+              <p className="mt-2 text-sm">Start writing your first journal entry!</p>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {entries.map((entry) => (
+            {filteredEntries.map((entry) => (
               <div
                 key={entry.id}
                 className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
@@ -58,7 +114,7 @@ export default function Sidebar({
               >
                 <div className="flex items-start justify-between">
                   <h3 className="font-semibold text-gray-900 truncate flex-1">
-                    {entry.title}
+                    {entry.title || 'Untitled Entry'}
                   </h3>
                   <button
                     onClick={(e) => {

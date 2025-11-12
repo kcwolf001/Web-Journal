@@ -3,21 +3,29 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import MarkdownEditor from '@/components/MarkdownEditor';
-import { JournalEntry } from '@/lib/types';
+import { JournalEntry, Folder } from '@/lib/types';
 import { storage } from '@/lib/storage';
 
 export default function Home() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>(undefined);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const loadedEntries = storage.getEntries();
+    const loadedFolders = storage.getFolders();
     setEntries(loadedEntries);
+    setFolders(loadedFolders);
   }, []);
 
   const handleSaveEntry = (entry: JournalEntry) => {
+    // If a folder is selected, add the entry to that folder
+    if (selectedFolderId !== undefined) {
+      entry.folderId = selectedFolderId;
+    }
     storage.saveEntry(entry);
     const updatedEntries = storage.getEntries();
     setEntries(updatedEntries);
@@ -37,6 +45,19 @@ export default function Home() {
     setSelectedEntry(entry);
   };
 
+  const handleSelectFolder = (folderId?: string) => {
+    setSelectedFolderId(folderId);
+    setSelectedEntry(null);
+  };
+
+  const handleFoldersChange = (updatedFolders: Folder[]) => {
+    setFolders(updatedFolders);
+  };
+
+  const handleEntriesChange = (updatedEntries: JournalEntry[]) => {
+    setEntries(updatedEntries);
+  };
+
   if (!mounted) {
     return null;
   }
@@ -45,9 +66,14 @@ export default function Home() {
     <div className="flex h-screen overflow-hidden">
       <Sidebar
         entries={entries}
+        folders={folders}
         selectedEntry={selectedEntry}
+        selectedFolderId={selectedFolderId}
         onSelectEntry={handleSelectEntry}
+        onSelectFolder={handleSelectFolder}
         onDeleteEntry={handleDeleteEntry}
+        onFoldersChange={handleFoldersChange}
+        onEntriesChange={handleEntriesChange}
       />
       <main className="flex-1 overflow-hidden">
         {selectedEntry || entries.length === 0 ? (

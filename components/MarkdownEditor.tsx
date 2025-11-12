@@ -33,6 +33,7 @@ export default function MarkdownEditor({ entry, onSave }: MarkdownEditorProps) {
       id: entry?.id || `entry-${Date.now()}`,
       title: title.trim() || 'Untitled Entry',
       content: content,
+      folderId: entry?.folderId,
       createdAt: entry?.createdAt || now,
       updatedAt: now,
     };
